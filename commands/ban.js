@@ -8,7 +8,7 @@ module.exports = {
 		.addUserOption(option => option.setName("target").setDescription("The user to ban").setRequired(true))
 		.addStringOption(option => option.setName("reason").setDescription("Reason for the ban")),
 	async execute(interaction, client) {
-		const user = interaction.options.getUser("target");
+		const user = interaction.options.getUser("target", true);
 		const reason = interaction.options.getString("reason") ?? "You got bent";
 		if (user) {
 			const guild = await client.guilds.fetch(process.env.GUILD_ID);
