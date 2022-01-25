@@ -17,10 +17,12 @@ module.exports = {
 		if (user) {
 			const guild = await client.guilds.fetch(process.env.GUILD_ID);
 			const guildMember = await guild.members.fetch(user.id);
-			guildMember
-				.timeout(time * 60 * 1000, reason)
-				.then(mem => console.log(`User ${mem.user.username} timedout for ${time} minute(s).`))
-				.catch(err => console.error(err));
+			try {
+				let mem = await guildMember.timeout(time * 60 * 1000, reason);
+				console.log(`User ${mem.user.username} timedout for ${time} minute(s).`);
+			} catch {
+				err => console.error(err);
+			}
 		}
 	},
 	permission: {
