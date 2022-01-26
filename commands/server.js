@@ -1,5 +1,6 @@
-const { SlashCommandBuilder } = require("@discordjs/builders");
-module.exports = {
+import { SlashCommandBuilder } from "@discordjs/builders";
+
+export default {
 	data: new SlashCommandBuilder()
 		.setDefaultPermission(true)
 		.setName("server")

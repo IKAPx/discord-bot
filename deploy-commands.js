@@ -1,15 +1,16 @@
-const dotenv = require("dotenv");
+import dotenv from "dotenv";
 dotenv.config();
-const fs = require("fs");
-const { REST } = require("@discordjs/rest");
-const { Routes } = require("discord-api-types/v9");
+import fs from "fs";
+import { REST } from "@discordjs/rest";
+import { Routes } from "discord-api-types/v9";
 
 const commands = [];
 const permissions = [];
 const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
 
 for (const file of commandFiles) {
-	const command = require(`./commands/${file}`);
+	const module = await import(`./commands/${file}`);
+	const command = module.default;
 	commands.push(command.data.toJSON());
 	if (command.permission) {
 		permissions.push(command.permission);

@@ -6,7 +6,7 @@ async function getCommandIds(client) {
 		console.log(id, name);
 	});
 }
-module.exports = {
+export default {
 	name: "ready",
 	once: true,
 	async execute(client) {
