@@ -1,7 +1,35 @@
 import dotenv from "dotenv";
 import fs from "fs";
+import { join, dirname } from "path";
+import { Low, JSONFile } from "lowdb";
+import { fileURLToPath } from "url";
 
+// Initialize dotenv
 dotenv.config();
+
+// Initialize lowdb
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// Use JSON file for storage
+const file = join(__dirname, "db.json");
+const adapter = new JSONFile(file);
+const db = new Low(adapter);
+
+// Read data from JSON file, this will set db.data content
+await db.read();
+if (db.data === null) {
+	db.data = { users: {} };
+	await db.write();
+}
+
+const exaobj = {
+	users: {
+		"FallDown#4133": {
+			roles: [process.env.ROLE_MEMBER],
+		},
+	},
+};
+
 // Require the necessary discord.js classes
 import { Client, Collection, Intents } from "discord.js";
 
