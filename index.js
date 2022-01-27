@@ -22,14 +22,6 @@ if (db.data === null) {
 	await db.write();
 }
 
-const exaobj = {
-	users: {
-		"FallDown#4133": {
-			roles: [process.env.ROLE_MEMBER],
-		},
-	},
-};
-
 // Require the necessary discord.js classes
 import { Client, Collection, Intents } from "discord.js";
 
@@ -69,7 +61,7 @@ client.on("interactionCreate", async interaction => {
 	if (!command) return;
 
 	try {
-		await command.execute(interaction, client);
+		await command.execute(interaction, client, db);
 	} catch (error) {
 		console.error(error);
 		await interaction.reply({ content: "There was an error while executing this command!", ephemeral: true });
