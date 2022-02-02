@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
+import { returnRoles } from "../command-helpers.js";
 
 export default {
 	data: new SlashCommandBuilder()
@@ -14,15 +15,6 @@ export default {
 		const reason = interaction.options.getString("reason") ?? "You got bent";
 		const time = interaction.options.getInteger("time");
 
-		async function returnRoles(guildMember, db) {
-			const userName = `${guildMember.user.username}#${guildMember.user.discriminator}`;
-			await guildMember.roles.set(db.data.users[userName].roles.map(x => x.id));
-			console.log(
-				`${guildMember.user.username} has been unjailed, returned roles ${db.data.users[userName].roles.map(
-					x => x.name
-				)}`
-			);
-		}
 		if (user) {
 			try {
 				// fetch the guild and guildmember objects using the respective ID's

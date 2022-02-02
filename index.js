@@ -26,7 +26,7 @@ if (db.data === null) {
 import { Client, Collection, Intents } from "discord.js";
 
 // Create a new client instance
-const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 // Event handling
 
 const eventFiles = fs.readdirSync("./events").filter(file => file.endsWith(".js"));
@@ -35,9 +35,9 @@ for (const file of eventFiles) {
 	const module = await import(`./events/${file}`);
 	const event = module.default;
 	if (event.once) {
-		client.once(event.name, (...args) => event.execute(...args));
+		client.once(event.name, (...args) => event.execute(...args, db));
 	} else {
-		client.on(event.name, (...args) => event.execute(...args));
+		client.on(event.name, (...args) => event.execute(...args, db));
 	}
 }
 
