@@ -32,7 +32,7 @@ export default {
 				// Set user's discord role to "Jail"
 				await guildMember.roles.set([process.env.ROLE_JAIL_ID]);
 
-				printJailInfo(guildMember, roles);
+				printJailInfo(guildMember, roles, reason);
 			} else if (databaseUser?.roles?.length) {
 				await returnRoles(guildMember, db);
 			}
@@ -97,7 +97,7 @@ export default {
 		 * @param {GuildMember} guildMember
 		 * @param {Array} roles
 		 */
-		function printJailInfo(guildMember, roles) {
+		function printJailInfo(guildMember, roles, reason) {
 			const timeString = time != null ? `for ${time} minute(s)` : "indefinitely";
 			console.log(
 				`${guildMember.user.username} has been jailed ${timeString}, reason: ${reason}. Removed roles ${roles.map(
