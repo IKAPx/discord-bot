@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
+import { hideReply } from "../command-helpers";
 
 export default {
 	data: new SlashCommandBuilder()
@@ -24,6 +25,7 @@ export default {
 				err => console.error(err);
 			}
 		}
+		await hideReply(interaction);
 	},
 	permission: {
 		id: process.env.COMMAND_TIMEOUT_ID,

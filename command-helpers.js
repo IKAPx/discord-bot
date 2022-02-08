@@ -9,3 +9,8 @@ export async function returnRoles(guildMember, db) {
 }
 
 export let breakoutAnswers = {};
+
+export async function hideReply(interaction) {
+	await interaction.deferReply();
+	await interaction.deleteReply();
+}

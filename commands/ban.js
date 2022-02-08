@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
+import { hideReply } from "../command-helpers.js";
 
 export default {
 	data: new SlashCommandBuilder()
@@ -17,6 +18,7 @@ export default {
 				.then(banInfo => console.log(`Banned ${banInfo.user?.tag ?? banInfo.tag ?? banInfo}`))
 				.catch(err => console.error(err));
 		}
+		await hideReply(interaction);
 	},
 	permission: {
 		id: process.env.COMMAND_BAN_ID,

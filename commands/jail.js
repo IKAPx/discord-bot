@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { returnRoles } from "../command-helpers.js";
+import { returnRoles, hideReply } from "../command-helpers.js";
 
 export default {
 	data: new SlashCommandBuilder()
@@ -23,7 +23,6 @@ export default {
 			const guildMemberRolesManager = guildMember.roles;
 
 			freeUserFromJailAfter(guildMember, time);
-
 			let databaseUser = getDatabaseUser(guildMember);
 			const roles = getUserRoles(guildMemberRolesManager);
 			if (roles.length) {
@@ -32,12 +31,14 @@ export default {
 				// Set user's discord role to "Jail"
 				await guildMember.roles.set([process.env.ROLE_JAIL_ID]);
 
-				printJailInfo(guildMember, roles, reason);
+				console.log(getJailInfo(guildMember, roles, reason, time));
 			} else if (databaseUser?.roles?.length) {
 				await returnRoles(guildMember, db);
 			}
-		} catch {
-			err => console.error(err);
+			await hideReply(interaction);
+			// await interaction.reply(getJailInfo(guildMember, roles, reason, time));
+		} catch (err) {
+			console.error(err);
 		}
 
 		/**
@@ -96,14 +97,13 @@ export default {
 		 * Prints who was jailed, for how long and for what reason, as well as which roles were removed.
 		 * @param {GuildMember} guildMember
 		 * @param {Array} roles
+		 * @param {String} reason
 		 */
-		function printJailInfo(guildMember, roles, reason) {
+		function getJailInfo(guildMember, roles, reason, time) {
 			const timeString = time != null ? `for ${time} minute(s)` : "indefinitely";
-			console.log(
-				`${guildMember.user.username} has been jailed ${timeString}, reason: ${reason}. Removed roles ${roles.map(
-					x => x.name
-				)}`
-			);
+			return `${
+				guildMember.user.username
+			} has been jailed ${timeString}, reason: ${reason}. Removed roles ${roles.map(x => x.name)}`;
 		}
 	},
 	permission: {

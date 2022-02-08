@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { getMathQuestion } from "../random-math.js";
-import { returnRoles, breakoutAnswers } from "../command-helpers.js";
+import { breakoutAnswers } from "../command-helpers.js";
 
 export default {
 	data: new SlashCommandBuilder()
