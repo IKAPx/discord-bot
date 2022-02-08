@@ -11,51 +11,99 @@ export default {
 		.addIntegerOption(option => option.setName("time").setDescription("Jail time in minutes")),
 
 	async execute(interaction, client, db) {
-		const user = interaction.options.getUser("target", true);
-		const reason = interaction.options.getString("reason") ?? "You got bent";
-		const time = interaction.options.getInteger("time");
+		try {
+			// Get the interaction's options
+			const user = interaction.options.getUser("target", true);
+			const reason = interaction.options.getString("reason") ?? "You got bent";
+			const time = interaction.options.getInteger("time");
 
-		if (user) {
-			try {
-				// fetch the guild and guildmember objects using the respective ID's
-				const guild = await client.guilds.fetch(process.env.GUILD_ID);
-				const guildMember = await guild.members.fetch(user.id);
-				const guildMemberRolesManager = guildMember.roles;
+			// Fetch the guild and guildmember objects using the respective ID's
+			const guild = await client.guilds.fetch(process.env.GUILD_ID);
+			const guildMember = await guild.members.fetch(user.id);
+			const guildMemberRolesManager = guildMember.roles;
 
-				// if time is given unjail the user after the timeout
-				if (time != null) {
-					setTimeout(async () => {
-						await returnRoles(guildMember, db);
-					}, time * 60 * 1000);
-				}
+			freeUserFromJailAfter(guildMember, time);
 
-				// filter the default-role and jail-role
-				const excludedRoles = ["@everyone", "Jail"];
-				const roles = Array.from(guildMemberRolesManager.cache.values(), x => ({
-					id: x.id,
-					name: x.name,
-				})).filter(x => !excludedRoles.includes(x.name));
+			let databaseUser = getDatabaseUser(guildMember);
+			const roles = getUserRoles(guildMemberRolesManager);
+			if (roles.length) {
+				await saveRolesToDatabase(databaseUser, roles);
 
-				const userName = `${guildMember.user.username}#${guildMember.user.discriminator}`;
-				if (roles.length) {
-					// saves the user's roles to a database and replaces them with the jail-role
-					db.data.users[userName] = { roles };
-					await db.write();
+				// Set user's discord role to "Jail"
+				await guildMember.roles.set([process.env.ROLE_JAIL_ID]);
 
-					await guildMember.roles.set([process.env.ROLE_JAIL_ID]);
-
-					const timeString = time != null ? `for ${time} minute(s)` : "indefinitely";
-					console.log(
-						`${
-							guildMember.user.username
-						} has been jailed ${timeString}, reason: ${reason}. Removed roles ${roles.map(x => x.name)}`
-					);
-				} else if (db.data.users[userName]?.roles?.length) {
-					await returnRoles(guildMember, db);
-				}
-			} catch {
-				err => console.error(err);
+				printJailInfo(guildMember, roles, reason);
+			} else if (databaseUser?.roles?.length) {
+				await returnRoles(guildMember, db);
 			}
+		} catch {
+			err => console.error(err);
+		}
+
+		/**
+		 * Gets the guild member's roles
+		 * @param {GuildMemberRoleManager} guildMemberRolesManager
+		 * @returns the users roles, excluding the default @everyone role and the Jail role
+		 */
+		function getUserRoles(guildMemberRolesManager) {
+			const excludedRoles = ["@everyone", "Jail"];
+			const roles = Array.from(guildMemberRolesManager.cache.values(), x => ({
+				id: x.id,
+				name: x.name,
+			})).filter(x => !excludedRoles.includes(x.name));
+			return roles;
+		}
+
+		/**
+		 * Set a timeout callback to free the user after 'time' minutes
+		 * @param { GuildMember } guildMember
+		 * @param { Number } time
+		 */
+		function freeUserFromJailAfter(guildMember, time) {
+			if (time != null) {
+				setTimeout(async () => {
+					await returnRoles(guildMember, db);
+				}, time * 60 * 1000);
+			}
+		}
+
+		/**
+		 * Gets the user from the database, using the username and discriminator
+		 * @param {GuildMember} guildMember
+		 * @returns The user object from the database
+		 */
+		function getDatabaseUser(guildMember) {
+			const userName = `${guildMember.user.username}#${guildMember.user.discriminator}`;
+			let databaseUser = db.data.users[userName];
+			return databaseUser;
+		}
+
+		/**
+		 * Saves the user's discord roles in to the database
+		 * @param {Object} dbUser
+		 * @param {Array} roles
+		 */
+		async function saveRolesToDatabase(dbUser, roles) {
+			if (dbUser?.roles) {
+				dbUser.roles = roles;
+			} else {
+				dbUser = { roles };
+			}
+			await db.write();
+		}
+
+		/**
+		 * Prints who was jailed, for how long and for what reason, as well as which roles were removed.
+		 * @param {GuildMember} guildMember
+		 * @param {Array} roles
+		 */
+		function printJailInfo(guildMember, roles, reason) {
+			const timeString = time != null ? `for ${time} minute(s)` : "indefinitely";
+			console.log(
+				`${guildMember.user.username} has been jailed ${timeString}, reason: ${reason}. Removed roles ${roles.map(
+					x => x.name
+				)}`
+			);
 		}
 	},
 	permission: {
