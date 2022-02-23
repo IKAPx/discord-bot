@@ -1,5 +1,8 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
+import { Client, CommandInteraction, GuildMember, GuildMemberRoleManager } from "discord.js";
 import { returnRoles, hideReply } from "../command-helpers.js";
+import { IDatabase } from "../types.js";
+import { Low } from "lowdb";
 
 export default {
 	data: new SlashCommandBuilder()
@@ -10,7 +13,7 @@ export default {
 		.addStringOption(option => option.setName("reason").setDescription("Reason for the jail"))
 		.addIntegerOption(option => option.setName("time").setDescription("Jail time in minutes")),
 
-	async execute(interaction, client, db) {
+	async execute(interaction: CommandInteraction, client: Client, db: Low<IDatabase>) {
 		try {
 			// Get the interaction's options
 			const user = interaction.options.getUser("target", true);
@@ -41,12 +44,8 @@ export default {
 			console.error(err);
 		}
 
-		/**
-		 * Gets the guild member's roles
-		 * @param {GuildMemberRoleManager} guildMemberRolesManager
-		 * @returns the users roles, excluding the default @everyone role and the Jail role
-		 */
-		function getUserRoles(guildMemberRolesManager) {
+		/** Gets the guild member's roles */
+		function getUserRoles(guildMemberRolesManager: GuildMemberRoleManager) {
 			const excludedRoles = ["@everyone", "Jail"];
 			const roles = Array.from(guildMemberRolesManager.cache.values(), x => ({
 				id: x.id,
@@ -55,12 +54,8 @@ export default {
 			return roles;
 		}
 
-		/**
-		 * Set a timeout callback to free the user after 'time' minutes
-		 * @param { GuildMember } guildMember
-		 * @param { Number } time
-		 */
-		function freeUserFromJailAfter(guildMember, time) {
+		/** Set a timeout callback to free the user after 'time' minutes */
+		function freeUserFromJailAfter(guildMember: GuildMember, time: number) {
 			if (time != null) {
 				setTimeout(async () => {
 					await returnRoles(guildMember, db);
@@ -68,23 +63,15 @@ export default {
 			}
 		}
 
-		/**
-		 * Gets the user from the database, using the username and discriminator
-		 * @param {GuildMember} guildMember
-		 * @returns The user object from the database
-		 */
-		function getDatabaseUser(guildMember) {
+		/** Gets the user from the database, using the username and discriminator */
+		function getDatabaseUser(guildMember: GuildMember): IDatabase["users"][number] {
 			const userName = `${guildMember.user.username}#${guildMember.user.discriminator}`;
 			let databaseUser = db.data.users[userName];
 			return databaseUser;
 		}
 
-		/**
-		 * Saves the user's discord roles in to the database
-		 * @param {Object} dbUser
-		 * @param {Array} roles
-		 */
-		async function saveRolesToDatabase(dbUser, roles) {
+		/** Saves the user's discord roles in to the database */
+		async function saveRolesToDatabase(dbUser: IDatabase["users"][number], roles: IDatabase["users"][number]["roles"]) {
 			if (dbUser?.roles) {
 				dbUser.roles = roles;
 			} else {
@@ -93,17 +80,17 @@ export default {
 			await db.write();
 		}
 
-		/**
-		 * Prints who was jailed, for how long and for what reason, as well as which roles were removed.
-		 * @param {GuildMember} guildMember
-		 * @param {Array} roles
-		 * @param {String} reason
-		 */
-		function getJailInfo(guildMember, roles, reason, time) {
+		/** Prints who was jailed, for how long and for what reason, as well as which roles were removed. */
+		function getJailInfo(
+			guildMember: GuildMember,
+			roles: IDatabase["users"][number]["roles"],
+			reason: string,
+			time: number,
+		) {
 			const timeString = time != null ? `for ${time} minute(s)` : "indefinitely";
-			return `${
-				guildMember.user.username
-			} has been jailed ${timeString}, reason: ${reason}. Removed roles ${roles.map(x => x.name)}`;
+			return `${guildMember.user.username} has been jailed ${timeString}, reason: ${reason}. Removed roles ${roles.map(
+				x => x.name,
+			)}`;
 		}
 	},
 	permission: {

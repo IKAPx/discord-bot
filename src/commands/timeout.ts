@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { hideReply } from "../command-helpers";
+import { Client, CommandInteraction } from "discord.js";
+import { hideReply } from "../command-helpers.js";
 
 export default {
 	data: new SlashCommandBuilder()
@@ -7,11 +8,9 @@ export default {
 		.setName("timeout")
 		.setDescription("Timeout a user for a period of time")
 		.addUserOption(option => option.setName("target").setDescription("The user to timeout").setRequired(true))
-		.addIntegerOption(option =>
-			option.setName("time").setDescription("Timeout length in minutes").setRequired(true)
-		)
+		.addIntegerOption(option => option.setName("time").setDescription("Timeout length in minutes").setRequired(true))
 		.addStringOption(option => option.setName("reason").setDescription("Reason for the timeout")),
-	async execute(interaction, client) {
+	async execute(interaction: CommandInteraction, client: Client) {
 		const user = interaction.options.getUser("target", true);
 		const reason = interaction.options.getString("reason") ?? "You got bent";
 		const time = interaction.options.getInteger("time", true);
@@ -21,8 +20,8 @@ export default {
 			try {
 				let mem = await guildMember.timeout(time * 60 * 1000, reason);
 				console.log(`User ${mem.user.username} timedout for ${time} minute(s).`);
-			} catch {
-				err => console.error(err);
+			} catch (err) {
+				console.error(err);
 			}
 		}
 		await hideReply(interaction);

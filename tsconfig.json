@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"target": "ES2021" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
+		"module": "ES2022" /* Specify what module code is generated. */,
+		"forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
+		"strict": false /* Enable all strict type-checking options. */,
+		"outDir": "./build",
+		"allowJs": true,
+		"moduleResolution": "Node",
+		"rootDir": "src",
+		"noImplicitAny": true,
+		"noImplicitReturns": true
+	},
+	"include": ["./src/**/*.ts", "discord.d.ts"]
+}

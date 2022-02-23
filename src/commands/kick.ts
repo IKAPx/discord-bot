@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
+import { Client, CommandInteraction, GuildMember, User } from "discord.js";
 import { hideReply } from "../command-helpers.js";
 
 export default {
@@ -8,14 +9,24 @@ export default {
 		.setDescription("Kick a user from the server")
 		.addUserOption(option => option.setName("target").setDescription("The user to kick").setRequired(true))
 		.addStringOption(option => option.setName("reason").setDescription("Reason for the kick")),
-	async execute(interaction, client) {
+	async execute(interaction: CommandInteraction, client: Client) {
 		const user = interaction.options.getUser("target", true);
 		const reason = interaction.options.getString("reason") ?? "You got bent";
 		if (user) {
 			const guild = await client.guilds.fetch(process.env.GUILD_ID);
 			guild.members
 				.kick(user.id, reason)
-				.then(banInfo => console.log(`Kicked ${banInfo.user?.tag ?? banInfo.tag ?? banInfo}`))
+				.then(banInfo => {
+					let bannedUser = "";
+					if (banInfo instanceof GuildMember) {
+						bannedUser = banInfo.user.tag;
+					} else if (banInfo instanceof User) {
+						bannedUser = banInfo.tag;
+					} else {
+						bannedUser = banInfo;
+					}
+					console.log("Kicked", bannedUser);
+				})
 				.catch(err => console.error(err));
 		}
 		await hideReply(interaction);

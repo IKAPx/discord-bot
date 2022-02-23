@@ -1,6 +1,7 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { getMathQuestion } from "../random-math.js";
 import { breakoutAnswers } from "../command-helpers.js";
+import { CommandInteraction } from "discord.js";
 
 export default {
 	data: new SlashCommandBuilder()
@@ -8,7 +9,7 @@ export default {
 		.setName("breakout")
 		.setDescription("Breakout a user from jail"),
 
-	async execute(interaction) {
+	async execute(interaction: CommandInteraction) {
 		const { question, answer } = getMathQuestion({
 			minRange: 1,
 			maxRange: 100,
@@ -24,7 +25,7 @@ export default {
 		breakoutAnswers[interaction.user.id] = answer;
 
 		await interaction.reply(
-			`To breakout from jail answer this question: ${question}. Round down to the nearest integer.`
+			`To breakout from jail answer this question: ${question}. Round down to the nearest integer.`,
 		);
 	},
 	permission: {

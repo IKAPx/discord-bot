@@ -1,8 +1,10 @@
-import dotenv from "dotenv";
-import fs from "fs";
-import { join, dirname } from "path";
+import * as dotenv from "dotenv";
+import * as fs from "fs";
+import { join, dirname, resolve } from "path";
 import { Low, JSONFile } from "lowdb";
 import { fileURLToPath } from "url";
+import { IDatabase } from "./types";
+import { Client, Collection, Intents } from "discord.js";
 
 // Initialize dotenv
 dotenv.config();
@@ -12,7 +14,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Use JSON file for storage
 const file = join(__dirname, "db.json");
-const adapter = new JSONFile(file);
+const adapter = new JSONFile<IDatabase>(file);
 const db = new Low(adapter);
 
 // Read data from JSON file, this will set db.data content
@@ -22,27 +24,24 @@ if (db.data === null) {
 	await db.write();
 }
 
-// Require the necessary discord.js classes
-import { Client, Collection, Intents } from "discord.js";
-
 // Create a new client instance
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 // Event handling
 
-const eventFiles = fs.readdirSync("./events").filter(file => file.endsWith(".js"));
+const eventFiles = fs.readdirSync(resolve(__dirname, "events")).filter(file => file.endsWith(".js"));
 
 for (const file of eventFiles) {
 	const module = await import(`./events/${file}`);
 	const event = module.default;
 	if (event.once) {
-		client.once(event.name, (...args) => event.execute(...args, db));
+		client.once(event.name, (...args) => event.execute(db, ...args));
 	} else {
-		client.on(event.name, (...args) => event.execute(...args, db));
+		client.on(event.name, (...args) => event.execute(db, ...args));
 	}
 }
 
 client.commands = new Collection();
-const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
+const commandFiles = fs.readdirSync(resolve(__dirname, "commands")).filter(file => file.endsWith(".js"));
 
 for (const file of commandFiles) {
 	const module = await import(`./commands/${file}`);
